@@ -1,0 +1,5 @@
+#!/bin/bash 
+mailfolder=/var/spool/mail/james 
+[ -r "$mailfolder" ]' '{ echo "Can not read $mailfolder" ; exit 1; } 
+echo "$mailfolder has mail from:" 
+grep "^From " $mailfolder 
