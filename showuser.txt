@@ -1,0 +1,23 @@
+#!/bin/bash
+yum -y install vsftpd
+
+useradd tomcat
+
+echo "hello"> /home/tomcat/test.txt
+
+key="0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+for i in seq 8
+do
+`num=$[RANDOM%62]`
+`tmp=${key:num:1}`
+`pass=$pass$tmp`
+done
+echo $pass | passwd --stdin tomcat
+
+
+echo $pass | mail -s password root
+
+systemctl restart vsftpd
+systemctl enable vsftpd
+
+
