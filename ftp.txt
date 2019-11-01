@@ -1,0 +1,109 @@
+# vim /sh/ftp.sh
+
+#!/bin/bash
+
+#name:ftp.sh
+
+#path:/sh/
+
+ip=`ifconfig |awk 'NR==2{print $2}'`
+
+
+#modify hostname  修改主机名
+
+hostnamectl set-hostname --static $ip.cc.com
+
+
+#config yum   配置公网yum
+
+rm -rf /etc/yum.repos.d/*
+
+cat >>/etc/yum.repos.d/local.repo<<-ED
+
+[163]
+
+name=163
+
+baseurl=http://mirrors.163.com/centos/7.3.1611/os/x86_64/
+
+enabled=1
+
+gpgcheck=0
+
+ED
+
+yum clean all &>/dev/null
+
+yum makecache &>/dev/null
+                          
+#stop selinux and stop firewall    关闭防火墙和selinux
+systemctl stop firewalld &>/dev/null
+
+setenforce 0 &>/dev/null
+
+sed -i '/SELINUX/c\/SELINUX=disabled' /etc/selinux/config
+
+
+#install vsftpd   安装vsftpd软件
+
+rpm -aq |grep vsftpd &>/dev/null
+
+if [ $? -ne 0 ];then
+
+        yum install vsftpd -y
+
+fi
+
+
+
+#创建共享目录和编辑消息文件内容
+
+cat >>/etc/vsftpd/banner<<EOF
+
+*********************************
+*       welcome to my home      *
+*********************************
+
+EOF
+
+mkdir /data/anon/bb -p &>/dev/null
+
+mkdir /data/local -p &>/dev/null
+
+chmod o+w /data/anon/bb
+
+echo "hello" >>/data/anon/bb/haha
+
+touch /data/anon/file{1..20} &>/dev/nlull
+
+touch /data/local/txt{1..20} &>/dev/nlull
+
+# 修改配置文件
+
+BB=/etc/vsftpd/vsftpd.conf
+
+echo "banner_file=/etc/vsftpd/banner" >>$BB
+
+echo "chroot_local_user=YES" >>$BB
+
+echo "anon_root=/data/anon" >>$BB
+
+echo "local_root=/data/local" >>$BB
+
+echo "anon_umask=022" >>$BB
+
+echo "anon_mkdir_write_enable=YES" >>$BB
+
+echo "anon_upload_enable=YES" >>$BB
+
+echo "anon_other_write_enable=YES" >>$BB
+
+
+
+# start vsftpd  启动服务并设置为开机自启动
+
+systemctl restart vsftpd &>/dev/null
+
+systemctl enable vsftpd &>/dev/null
+
+
